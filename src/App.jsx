@@ -1,7 +1,9 @@
 import { useState } from "react";
 import Lexer from "./compiler/lexer/Lexer";
 import Parser from "./compiler/parser/Parser";
-
+import ASTViewer from "./components/ASTVier";
+import SemanticAnalyzer from "./compiler/semantic/SemanticAnalyzer.js";
+import SymbolTable from "./compiler/SymbolTable.jsx";
 function App() {
   const [code, setCode] = useState(
 `int age = 20;
@@ -11,42 +13,80 @@ string name = "Roshan";`
 
   const [tokens, setTokens] = useState([]);
   const [errors, setErrors] = useState([]);
+const [ast, setAst] = useState(null);
+const [symbolTable, setSymbolTable] = useState({});
 
-  const compileCode = () => {
+ 
+const compileCode = () => {
 
-    // ==========================
-    // STEP 1: LEXICAL ANALYSIS
-    // ==========================
+  // ==========================================
+  // STEP 1: LEXICAL ANALYSIS
+  // ==========================================
 
-    const lexer = new Lexer(code);
+  const lexer = new Lexer(code);
 
-    const lexerResult = lexer.tokenize();
+  const lexerResult = lexer.tokenize();
 
-    // Store tokens so they appear in the UI
-    setTokens(lexerResult.tokens);
+  setTokens(lexerResult.tokens);
+  setErrors(lexerResult.errors);
 
-    // Store lexer errors
-    setErrors(lexerResult.errors);
+  // Clear previous results
+  setAst(null);
+  setSymbolTable({});
 
 
-    // ==========================
-    // STEP 2: SYNTAX ANALYSIS
-    // ==========================
+  // ==========================================
+  // STEP 2: SYNTAX ANALYSIS
+  // ==========================================
 
-    // Only run Parser if Lexer has no errors
-    if (lexerResult.errors.length === 0) {
+  if (lexerResult.errors.length === 0) {
 
-      const parser = new Parser(lexerResult.tokens);
+    const parser =
+      new Parser(lexerResult.tokens);
 
-      const ast = parser.parse();
+    const parsedAST =
+      parser.parse();
 
-      // Show AST in browser console for now
-      console.log("AST:", ast);
+    setAst(parsedAST);
 
-      // Show parser errors
+    // If parser has errors
+    if (parser.errors.length > 0) {
+
       setErrors(parser.errors);
+
+      return;
     }
-  };
+
+
+    // ==========================================
+    // STEP 3: SEMANTIC ANALYSIS
+    // ==========================================
+
+    const semanticAnalyzer =
+      new SemanticAnalyzer(parsedAST);
+
+    const semanticResult =
+      semanticAnalyzer.analyze();
+
+    console.log(
+      "Symbol Table:",
+      semanticResult.symbolTable
+    );
+
+    console.log(
+      "Semantic Errors:",
+      semanticResult.errors
+    );
+
+    setSymbolTable(
+      semanticResult.symbolTable
+    );
+
+    setErrors(
+      semanticResult.errors
+    );
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-950 text-white p-8">
@@ -136,7 +176,21 @@ string name = "Roshan";`
             </table>
 
           </div>
+{/* AST */}
 
+<div className="mt-6">
+
+  <ASTViewer ast={ast} />
+
+<div className="mt-6 bg-gray-900 rounded-lg p-5">
+
+  <SymbolTable
+    symbolTable={symbolTable}
+  />
+
+</div>
+
+</div>
 
           {/* ERRORS */}
 

@@ -118,14 +118,19 @@ class Parser {
     this.expect("SYMBOL", ";");
 
     return {
-      type: "VariableDeclaration",
+  type: "VariableDeclaration",
 
-      dataType: typeToken.value,
+  dataType: typeToken.value,
 
-      identifier: identifierToken.value,
+  identifier: identifierToken.value,
 
-      value,
-    };
+  value,
+
+  line: typeToken.line,
+
+  column: typeToken.column,
+};
+    
   }
 
   parseExpression() {
@@ -208,13 +213,15 @@ class Parser {
     }
 
     if (token.type === "IDENTIFIER") {
-      this.advance();
+  this.advance();
 
-      return {
-        type: "Identifier",
-        name: token.value,
-      };
-    }
+  return {
+    type: "Identifier",
+    name: token.value,
+    line: token.line,
+    column: token.column,
+  };
+}
 
     this.addError(
       `Unexpected token '${token.value}' in expression.`
