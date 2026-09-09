@@ -35,7 +35,7 @@ this.addError(
     return this.symbolTable[name];
   }
 
-  getExpressionType(expression) {
+ getExpressionType(expression) {
 
     if (!expression) {
       return null;
@@ -69,10 +69,10 @@ this.addError(
 
       if (!variable) {
         this.addError(
-  `Variable '${expression.name}' is not declared.`,
-  expression.line || 0,
-  expression.column || 0
-);
+          `Variable '${expression.name}' is not declared.`,
+          expression.line || 0,
+          expression.column || 0
+        );
 
         return null;
       }
@@ -80,62 +80,200 @@ this.addError(
       return variable.type;
     }
 
-    // Binary Expression
-    if (expression.type === "BinaryExpression") {
+   // Binary Expression
+if (
+  expression.type ===
+  "BinaryExpression"
+) {
 
-      const leftType =
-        this.getExpressionType(expression.left);
+  const leftType =
+    this.getExpressionType(
+      expression.left
+    );
 
-      const rightType =
-        this.getExpressionType(expression.right);
+  const rightType =
+    this.getExpressionType(
+      expression.right
+    );
 
-      if (!leftType || !rightType) {
-        return null;
-      }
+  if (!leftType || !rightType) {
+    return null;
+  }
 
-      // String concatenation
+
+  // ========================================
+  // STRING CONCATENATION
+  // ========================================
+
+  if (
+    expression.operator === "+" &&
+    leftType === "string" &&
+    rightType === "string"
+  ) {
+    return "string";
+  }
+
+
+  // ========================================
+  // ARITHMETIC OPERATORS
+  // + - * /
+  // ========================================
+
+  if (
+    ["+", "-", "*", "/"].includes(
+      expression.operator
+    )
+  ) {
+
+    if (
+      (leftType === "int" ||
+        leftType === "float") &&
+      (rightType === "int" ||
+        rightType === "float")
+    ) {
+
       if (
-        expression.operator === "+" &&
-        leftType === "string" &&
-        rightType === "string"
+        leftType === "float" ||
+        rightType === "float"
       ) {
-        return "string";
+        return "float";
       }
 
-      // Numeric operations
-      if (
-        ["+", "-", "*", "/"].includes(
-          expression.operator
-        )
-      ) {
-
-        if (
-          (leftType === "int" ||
-            leftType === "float") &&
-          (rightType === "int" ||
-            rightType === "float")
-        ) {
-
-          if (
-            leftType === "float" ||
-            rightType === "float"
-          ) {
-            return "float";
-          }
-
-          return "int";
-        }
-
-        this.addError(
-          `Invalid operation: ${leftType} ${expression.operator} ${rightType}.`
-        );
-
-        return null;
-      }
+      return "int";
     }
+
+    this.addError(
+      `Invalid operation: ${leftType} ${expression.operator} ${rightType}.`,
+      expression.line,
+      expression.column
+    );
 
     return null;
   }
+
+
+  // ========================================
+  // COMPARISON OPERATORS
+  // > < >= <=
+  // ========================================
+
+  if (
+    [">", "<", ">=", "<="].includes(
+      expression.operator
+    )
+  ) {
+
+    if (
+      (leftType === "int" ||
+        leftType === "float") &&
+      (rightType === "int" ||
+        rightType === "float")
+    ) {
+      return "boolean";
+    }
+
+    this.addError(
+      `Comparison requires numeric values, but found ${leftType} and ${rightType}.`,
+      expression.line,
+      expression.column
+    );
+
+    return null;
+  }
+
+
+  // ========================================
+  // EQUALITY OPERATORS
+  // == !=
+  // ========================================
+
+  if (
+    ["==", "!="].includes(
+      expression.operator
+    )
+  ) {
+
+    if (leftType === rightType) {
+      return "boolean";
+    }
+
+    if (
+      (leftType === "int" &&
+        rightType === "float") ||
+      (leftType === "float" &&
+        rightType === "int")
+    ) {
+      return "boolean";
+    }
+
+    this.addError(
+      `Cannot compare ${leftType} with ${rightType}.`,
+      expression.line,
+      expression.column
+    );
+
+    return null;
+  }
+}
+
+// ========================================
+// LOGICAL EXPRESSIONS
+// && ||
+// ========================================
+
+if (
+  expression.type ===
+  "LogicalExpression"
+) {
+
+  const leftType =
+    this.getExpressionType(
+      expression.left
+    );
+
+  const rightType =
+    this.getExpressionType(
+      expression.right
+    );
+
+  if (!leftType || !rightType) {
+    return null;
+  }
+
+  if (
+    leftType !== "boolean" ||
+    rightType !== "boolean"
+  ) {
+
+    this.addError(
+      `Logical operator '${expression.operator}' requires boolean operands.`,
+      expression.line,
+      expression.column
+    );
+
+    return null;
+  }
+
+  return "boolean";
+}
+
+    // ==========================================
+    // PARENTHESIZED EXPRESSION
+    // ==========================================
+
+    if (
+      expression.type ===
+      "ParenthesizedExpression"
+    ) {
+      return this.getExpressionType(
+        expression.expression
+      );
+    }
+
+
+    // Nothing matched
+    return null;
+}
 
   analyzeVariableDeclaration(statement) {
 
