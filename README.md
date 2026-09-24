@@ -1,16 +1,33 @@
-# React + Vite
+Compiler Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A compiler frontend that transforms source code into an intermediate representation through lexical analysis, parsing, and semantic analysis.
 
-Currently, two official plugins are available:
+Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Lexer — Converts source code into tokens.
 
-## React Compiler
+Parser — Builds an Abstract Syntax Tree (AST).
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Semantic Analyzer — Checks types, scopes, and semantic rules.
 
-## Expanding the Oxlint configuration
+AST / IR — Provides structured representations for later compiler stages.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+Project Structure
+src/
+├── lexer/
+├── parser/
+├── ast/
+├── semantic/
+└── main.*
+
+Getting Started
+
+Clone the repository, install the required dependencies, and run the compiler frontend using the project's build command.
+
+git clone <repository-url>
+cd <repository-name>
+
+Status
+
+🚧 Work in progress — backend/code generation is not included yet.
+
